@@ -11,8 +11,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/analogClock"
         android:dial="@drawable/appwidget_clock_dial2"
-        android:hand_hour="@drawable/clock_hour2"
-        android:hand_minute="@drawable/clock_minute2"
+        android:hand_hour="@drawable/clock_hour3"
+        android:hand_minute="@drawable/clock_minute3"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true" />
