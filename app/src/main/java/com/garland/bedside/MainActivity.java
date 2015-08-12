@@ -120,7 +120,9 @@ public class MainActivity extends Activity {
         SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd");
         calLab.setText(df.format(c.getTime()));
 
-        readCalendar(MainActivity.this,1,0);
+        readCalendar(MainActivity.this, 1, 0);
+
+        startTimer();
 
     }
 
@@ -151,16 +153,20 @@ public class MainActivity extends Activity {
         @Override
         protected Weather doInBackground(String... params) {
             Weather weather = new Weather();
-            String data = ((new WeatherHttpClient()).getWeatherData(params[0]));
-
             try {
-                weather = JSONWeatherParser.getWeather(data);
+                String data = ((new WeatherHttpClient()).getWeatherData(params[0]));
 
-                // Let's retrieve the icon
-                weather.iconData = ((new WeatherHttpClient()).getImage(weather.currentCondition.getIcon()));
+                try {
+                    weather = JSONWeatherParser.getWeather(data);
 
-            } catch (JSONException e) {
-                e.printStackTrace();
+                    // Let's retrieve the icon
+                    weather.iconData = ((new WeatherHttpClient()).getImage(weather.currentCondition.getIcon()));
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception je) {
+                je.printStackTrace();
             }
             return weather;
         }
@@ -169,26 +175,44 @@ public class MainActivity extends Activity {
         protected void onPostExecute(Weather weather) {
             super.onPostExecute(weather);
 
-            if (weather.iconData != null && weather.iconData.length > 0) {
-                Bitmap img = BitmapFactory.decodeByteArray(weather.iconData, 0, weather.iconData.length);
-                imgView.setImageBitmap(img);
+            if (weather != null) {
+
+                if (weather.iconData != null && weather.iconData.length > 0) {
+                    Bitmap img = BitmapFactory.decodeByteArray(weather.iconData, 0, weather.iconData.length);
+                    imgView.setImageBitmap(img);
+                }
+
+                cityText.setText(weather.location.getCity());
+                Log.i("WEATHER", weather.location.getCity());
+
+                condDescr.setText(weather.currentCondition.getCondition() + " (" + weather.currentCondition.getDescr() + ")");
+                Log.i("WEATHER", weather.currentCondition.getCondition() + " (" + weather.currentCondition.getDescr() + ")");
+
+                //temp.setText("" + Math.round((weather.temperature.getTemp() - 273.15)) + "�C");
+                //temp.setText("" + Math.round(((weather.temperature.getTemp() * 9)/5 - 459.67)) + " \u00B0 F");
+                temp.setText("" + Math.round(((weather.temperature.getTemp()))) + " \u00B0 F");
+                Log.i("WEATHER", "" + Math.round(((weather.temperature.getTemp()))) + " \u00B0 F");
+
+                hitemp.setText("" + weather.temperature.getMaxTemp() + " \u00B0 F");
+                Log.i("WEATHER", "" + weather.temperature.getMinTemp() + " \u00B0 F");
+
+                lowtemp.setText("" + weather.temperature.getMinTemp() + " \u00B0 F");
+                Log.i("WEATHER", "" + weather.temperature.getMinTemp() + " \u00B0 F");
+
+                hum.setText("" + weather.currentCondition.getHumidity() + "%");
+                Log.i("WEATHER", "" + weather.currentCondition.getHumidity() + "%");
+
+                press.setText(" " + weather.currentCondition.getPressure() + " hPa");
+                Log.i("WEATHER", " " + weather.currentCondition.getPressure() + " hPa");
+
+                windSpeed.setText(" " + weather.wind.getSpeed() + " mph");
+                Log.i("WEATHER", " " + weather.wind.getSpeed() + " mph");
+
+                //windDeg.setText(" " + weather.wind.getDeg() + "\u00B0");
+                //Log.i("WEATHER"," " + weather.wind.getDeg() + "\u00B0");
+
             }
-
-            cityText.setText(weather.location.getCity());
-            condDescr.setText(weather.currentCondition.getCondition() + " (" + weather.currentCondition.getDescr() + ")");
-            //temp.setText("" + Math.round((weather.temperature.getTemp() - 273.15)) + "�C");
-            //temp.setText("" + Math.round(((weather.temperature.getTemp() * 9)/5 - 459.67)) + " \u00B0 F");
-            temp.setText("" + Math.round(((weather.temperature.getTemp()))) + " \u00B0 F");
-            hitemp.setText("" +weather.temperature.getMaxTemp() + " \u00B0 F");
-            lowtemp.setText("" +weather.temperature.getMinTemp() + " \u00B0 F");
-            hum.setText("" + weather.currentCondition.getHumidity() + "%");
-            press.setText(" " + weather.currentCondition.getPressure() + " hPa");
-            windSpeed.setText(" " + weather.wind.getSpeed() + " mph");
-            windDeg.setText(" " + weather.wind.getDeg() + "\u00B0");
-
         }
-
-
 
     }
 
@@ -224,23 +248,23 @@ public class MainActivity extends Activity {
         timerTask = new TimerTask() {
             public void run() {
 
-                //use a handler to run a toast that shows the current timestamp
+                //use a handler to show the current timestamp
                 handler.post(new Runnable() {
                     public void run() {
 
                         Log.i("TIMER","timer started");
 
-                        //get the current timeStamp
-                        Calendar calendar = Calendar.getInstance();
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd:MMMM:yyyy HH:mm:ss a");
-                        final String strDate = simpleDateFormat.format(calendar.getTime());
+                        Calendar c = Calendar.getInstance();
+                        SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd");
+                        calLab.setText(df.format(c.getTime()));
+
 
                         // get westher info
                         JSONWeatherTask task = new JSONWeatherTask();
                         task.execute(new String[]{city});
 
                         //Show Calendar
-                        readCalendar(MainActivity.this, 1, 0);
+                        readCalendar(MainActivity.this, 0, 1);
 
 
                         /*
@@ -286,18 +310,32 @@ public class MainActivity extends Activity {
             // Create a builder to define the time span
             Uri.Builder builder = Uri.parse("content://com.android.calendar/instances/when").buildUpon();
             long now = new Date().getTime();
+            Calendar calendar = Calendar.getInstance();
+
+            SimpleDateFormat startFormatter = new SimpleDateFormat("MM/dd/yy");
+            String dateString = startFormatter.format(calendar.getTime());
+
+            SimpleDateFormat formatterr = new SimpleDateFormat("hh:mm:ss MM/dd/yy");
+            Calendar endOfDay = Calendar.getInstance();
+            try {
+                Date dateCCC = formatterr.parse("23:59:59 " + dateString);
+                endOfDay.setTime(dateCCC);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
 
             // create the time span based on the inputs
-        //    ContentUris.appendId(builder, now - (DateUtils.DAY_IN_MILLIS * days) - (DateUtils.HOUR_IN_MILLIS * hours));
+            //ContentUris.appendId(builder, now - (DateUtils.DAY_IN_MILLIS * days) - (DateUtils.HOUR_IN_MILLIS * hours));
             ContentUris.appendId(builder, now);
-            ContentUris.appendId(builder, now + (DateUtils.DAY_IN_MILLIS * days) + (DateUtils.HOUR_IN_MILLIS * hours));
+            ContentUris.appendId(builder, endOfDay.getTimeInMillis());
 
             // Create an event cursor to find all events in the calendar
             Cursor eventCursor = contentResolver.query(builder.build(),
                     new String[]  { "title", "begin", "end", "allDay"}, "calendar_id=" + id,
                     null, "startDay ASC, startMinute ASC");
 
-            System.out.println("eventCursor count="+eventCursor.getCount());
             if(LOG) Log.i("CAL","eventCursor count="+eventCursor.getCount());
 
             // If there are actual events in the current calendar, the count will exceed zero
@@ -318,7 +356,7 @@ public class MainActivity extends Activity {
                 eventList.add(ce);
 
                 //System.out.println(ce.toString())
-                if (LOG) Log.i("CAL",ce.toString());
+                if (LOG) Log.i("CAL 1",ce.toString());
                 SimpleDateFormat df = new SimpleDateFormat("hh:mm a");
                 String estart = df.format(ce.getBegin().getTime());
                 String eend = df.format(ce.getEnd().getTime());
@@ -358,7 +396,7 @@ public class MainActivity extends Activity {
 
 
                     //System.out.println(ce.toString());
-                    if(LOG) Log.i("CAL to display",ce.toString());
+                    if(LOG) Log.i("CAL " + i,ce.toString());
 
                 }
 
@@ -369,8 +407,17 @@ public class MainActivity extends Activity {
                 //System.out.println(eventMap.keySet().size() + " " + eventMap.values());
                 if(LOG) Log.i("CAL",eventMap.keySet().size() + " " + eventMap.values());
 
+            } else {
+                cal1.setText("");
+                cal2.setText("");
+                cal3.setText("");
+                cal4.setText("");
+                cal5.setText("");
+                cal6.setText("");
             }
-        };
+            eventCursor.close();
+        }
+        cursor.close();
     }
 
     // Returns a new instance of the calendar object
@@ -400,11 +447,12 @@ public class MainActivity extends Activity {
                     String displayName = cursor.getString(1);
                     Boolean selected = !cursor.getString(2).equals("0");
 
-                    System.out.println("Id: " + _id + " Display Name: " + displayName + " Selected: " + selected);
-                    if(LOG) Log.i("CAL","Id: " + _id + " Display Name: " + displayName + " Selected: " + selected);
+                    //System.out.println("Id: " + _id + " Display Name: " + displayName + " Selected: " + selected);
+                    //if(LOG) Log.i("CAL","Id: " + _id + " Display Name: " + displayName + " Selected: " + selected);
                     calendarIds.add(_id);
 
                 }
+                cursor.close();
             }
         }
 

@@ -1,5 +1,7 @@
 package com.garland.bedside;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -23,6 +25,7 @@ public class WeatherHttpClient {
 
         try {
             con = (HttpURLConnection) ( new URL(BASE_URL + location + "&units=imperial")).openConnection();
+            Log.i("HTTP", BASE_URL + location + "&units=imperial");
             con.setRequestMethod("GET");
             con.setDoInput(true);
             con.setDoOutput(true);
