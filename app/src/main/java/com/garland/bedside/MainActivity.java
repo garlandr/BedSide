@@ -102,7 +102,7 @@ public class MainActivity extends Activity {
         cal6 = (TextView) findViewById(R.id.cal6);
 
         JSONWeatherTask task = new JSONWeatherTask();
-        task.execute(new String[]{city});
+        task.execute(city);
 
         clockbutton = (AnalogClock) findViewById(R.id.analogClock);
         clockbutton.setOnClickListener(new View.OnClickListener() {
