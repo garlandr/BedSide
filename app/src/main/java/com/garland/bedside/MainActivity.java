@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -49,12 +50,10 @@ public class MainActivity extends Activity {
     private TextView lowtemp;
     private TextView press;
     private TextView windSpeed;
-    private TextView windDeg;
+//    private TextView windDeg;
 
     private TextView hum;
     private ImageView imgView;
-
-    private AnalogClock clockbutton;
 
     private static TextView calLab;
     private static TextView cal1;
@@ -90,7 +89,7 @@ public class MainActivity extends Activity {
         hum = (TextView) findViewById(R.id.hum);
         press = (TextView) findViewById(R.id.press);
         windSpeed = (TextView) findViewById(R.id.windSpeed);
-        windDeg = (TextView) findViewById(R.id.windDeg);
+//        windDeg = (TextView) findViewById(R.id.windDeg);
         imgView = (ImageView) findViewById(R.id.condIcon);
 
         calLab = (TextView) findViewById(R.id.calLab);
@@ -104,6 +103,7 @@ public class MainActivity extends Activity {
         JSONWeatherTask task = new JSONWeatherTask();
         task.execute(city);
 
+        AnalogClock clockbutton;
         clockbutton = (AnalogClock) findViewById(R.id.analogClock);
         clockbutton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -115,8 +115,28 @@ public class MainActivity extends Activity {
             }
         });
 
+        calLab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setClassName("com.android.calendar",
+                        "com.android.calendar.LaunchActivity");
+                startActivity(intent);
+
+            }
+        });
+
+        imgView.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+                Intent implicit = new Intent(Intent.ACTION_VIEW, Uri.parse("http://weather.weatherbug.com/forecasts/now/west-view-pa-15086"));
+                startActivity(implicit);
+            }
+        });
+
+
         Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd");
+        SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd",Locale.US);
         calLab.setText(df.format(c.getTime()));
 
         readCalendar(MainActivity.this, 1, 0);
@@ -254,13 +274,13 @@ public class MainActivity extends Activity {
                         Log.i("TIMER","timer started");
 
                         Calendar c = Calendar.getInstance();
-                        SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd");
+                        SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd", Locale.US);
                         calLab.setText(df.format(c.getTime()));
 
 
                         // get westher info
                         JSONWeatherTask task = new JSONWeatherTask();
-                        task.execute(new String[]{city});
+                        task.execute(city);
 
                         //Show Calendar
                         readCalendar(MainActivity.this, 1, 0);
@@ -319,10 +339,10 @@ public class MainActivity extends Activity {
             long now = new Date().getTime();
             Calendar calendar = Calendar.getInstance();
 
-            SimpleDateFormat startFormatter = new SimpleDateFormat("MM/dd/yy");
+            SimpleDateFormat startFormatter = new SimpleDateFormat("MM/dd/yy",Locale.US);
             String dateString = startFormatter.format(calendar.getTime());
 
-            SimpleDateFormat formatterr = new SimpleDateFormat("hh:mm:ss MM/dd/yy");
+            SimpleDateFormat formatterr = new SimpleDateFormat("hh:mm:ss MM/dd/yy",Locale.US);
             Calendar endOfDay = Calendar.getInstance();
             try {
                 Date dateCCC = formatterr.parse("23:59:59 " + dateString);
@@ -330,8 +350,6 @@ public class MainActivity extends Activity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-
 
             // create the time span based on the inputs
             //ContentUris.appendId(builder, now - (DateUtils.DAY_IN_MILLIS * days) - (DateUtils.HOUR_IN_MILLIS * hours));
@@ -343,84 +361,92 @@ public class MainActivity extends Activity {
                     new String[]  { "title", "begin", "end", "allDay"}, "calendar_id=" + id,
                     null, "startDay ASC, startMinute ASC");
 
-            if(LOG) Log.i("CAL","eventCursor count="+eventCursor.getCount());
+            if(LOG) if (eventCursor != null) {
+                Log.i("CAL","eventCursor count="+eventCursor.getCount());
+            }
 
             // If there are actual events in the current calendar, the count will exceed zero
-            if(eventCursor.getCount()>0)
-            {
-
-                // Create a list of calendar events for the specific calendar
-                List<CalendarEvent> eventList = new ArrayList<CalendarEvent>();
-
-                // Move to the first object
-                eventCursor.moveToFirst();
-
-                // Create an object of CalendarEvent which contains the title, when the event begins and ends,
-                // and if it is a full day event or not
-                CalendarEvent ce = loadEvent(eventCursor);
-
-                // Adds the first object to the list of events
-                eventList.add(ce);
-
-                //System.out.println(ce.toString())
-                if (LOG) Log.i("CAL 1",ce.toString());
-                SimpleDateFormat df = new SimpleDateFormat("hh:mm a");
-                String estart = df.format(ce.getBegin().getTime());
-                String eend = df.format(ce.getEnd().getTime());
-                cal1.setText(ce.getTitle() + " " + estart + " to " + eend);
-                Log.i("CAL x", cal1.getText().toString());
-
-
-                int i = 1;
-                cal6.setVisibility(View.INVISIBLE);
-                // While there are more events in the current calendar, move to the next instance
-                while (eventCursor.moveToNext())
+            if (eventCursor != null) {
+                if(eventCursor.getCount()>0)
                 {
 
-                    // Adds the object to the list of events
-                    ce = loadEvent(eventCursor);
+                    // Create a list of calendar events for the specific calendar
+                    List<CalendarEvent> eventList = new ArrayList<CalendarEvent>();
+
+                    // Move to the first object
+                    eventCursor.moveToFirst();
+
+                    // Create an object of CalendarEvent which contains the title, when the event begins and ends,
+                    // and if it is a full day event or not
+                    CalendarEvent ce = loadEvent(eventCursor);
+
+                    // Adds the first object to the list of events
                     eventList.add(ce);
-                    estart = df.format(ce.getBegin().getTime());
-                    eend = df.format(ce.getEnd().getTime());
-                    i++;
-                    switch (i) {
-                        case 2:
-                            cal2.setText(ce.getTitle() + " " + estart + " to " + eend);
-                            break;
-                        case 3:
-                            cal3.setText(ce.getTitle() + " " + estart + " to " + eend);
-                            break;
-                        case 4:
-                            cal4.setText(ce.getTitle() + " " + estart + " to " + eend);
-                            break;
-                        case 5:
-                            cal5.setText(ce.getTitle() + " " + estart + " to " + eend);
-                            break;
-                        case 6:
-                            cal6.setVisibility(View.VISIBLE);
-                            break;
-                        default:
-                            break;
+
+                    //System.out.println(ce.toString())
+                    if (LOG) Log.i("CAL 1",ce.toString());
+                    SimpleDateFormat df = new SimpleDateFormat("hh:mm a",Locale.US);
+                    String estart = df.format(ce.getBegin().getTime());
+                    String eend = df.format(ce.getEnd().getTime());
+                    cal1.setText(ce.getTitle() + " " + estart + " to " + eend);
+                    Log.i("CAL x", cal1.getText().toString());
+
+
+                    int i = 1;
+                    cal6.setVisibility(View.INVISIBLE);
+                    // While there are more events in the current calendar, move to the next instance
+                    while (eventCursor.moveToNext())
+                    {
+
+                        // Adds the object to the list of events
+                        ce = loadEvent(eventCursor);
+                        eventList.add(ce);
+                        estart = df.format(ce.getBegin().getTime());
+                        eend = df.format(ce.getEnd().getTime());
+                        i++;
+                        switch (i) {
+                            case 2:
+                                cal2.setText(ce.getTitle() + " " + estart + " to " + eend);
+                                break;
+                            case 3:
+                                cal3.setText(ce.getTitle() + " " + estart + " to " + eend);
+                                break;
+                            case 4:
+                                cal4.setText(ce.getTitle() + " " + estart + " to " + eend);
+                                break;
+                            case 5:
+                                cal5.setText(ce.getTitle() + " " + estart + " to " + eend);
+                                break;
+                            case 6:
+                                cal6.setVisibility(View.VISIBLE);
+                                break;
+                            default:
+                                break;
+                        }
+
+
+                        //System.out.println(ce.toString());
+                        if(LOG) Log.i("CAL " + i,ce.toString());
+
                     }
 
+                    Collections.sort(eventList);
+                    eventMap.put(id, eventList);
 
-                    //System.out.println(ce.toString());
-                    if(LOG) Log.i("CAL " + i,ce.toString());
+
+                    //System.out.println(eventMap.keySet().size() + " " + eventMap.values());
+                    if(LOG) Log.i("CAL",eventMap.keySet().size() + " " + eventMap.values());
 
                 }
-
-                Collections.sort(eventList);
-                eventMap.put(id, eventList);
-
-
-                //System.out.println(eventMap.keySet().size() + " " + eventMap.values());
-                if(LOG) Log.i("CAL",eventMap.keySet().size() + " " + eventMap.values());
-
             }
-            
-            eventCursor.close();
+
+            if (eventCursor != null) {
+                eventCursor.close();
+            }
         }
-        cursor.close();
+        if (cursor != null) {
+            cursor.close();
+        }
     }
 
     // Returns a new instance of the calendar object
@@ -447,8 +473,8 @@ public class MainActivity extends Activity {
                 while (cursor.moveToNext()) {
 
                     String _id = cursor.getString(0);
-                    String displayName = cursor.getString(1);
-                    Boolean selected = !cursor.getString(2).equals("0");
+                    //String displayName = cursor.getString(1);
+                    //Boolean selected = !cursor.getString(2).equals("0");
 
                     //System.out.println("Id: " + _id + " Display Name: " + displayName + " Selected: " + selected);
                     //if(LOG) Log.i("CAL","Id: " + _id + " Display Name: " + displayName + " Selected: " + selected);
@@ -459,13 +485,9 @@ public class MainActivity extends Activity {
             }
         }
 
-        catch(AssertionError ex)
+        catch(AssertionError | Exception ex)
         {
             ex.printStackTrace();
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
         }
 
         return calendarIds;
