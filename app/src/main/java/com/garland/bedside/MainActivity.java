@@ -263,7 +263,7 @@ public class MainActivity extends Activity {
                         task.execute(new String[]{city});
 
                         //Show Calendar
-                        readCalendar(MainActivity.this, 0, 1);
+                        readCalendar(MainActivity.this, 1, 0);
 
 
                         /*
@@ -302,6 +302,14 @@ public class MainActivity extends Activity {
 
         // Create a hash map of calendar ids and the events of each id
         HashMap<String, List<CalendarEvent>> eventMap = new HashMap<String, List<CalendarEvent>>();
+
+        cal1.setText("");
+        cal2.setText("");
+        cal3.setText("");
+        cal4.setText("");
+        cal5.setText("");
+        cal6.setText("");
+
 
         // Loop over all of the calendars
         for (String id : calendarIds) {
@@ -360,6 +368,8 @@ public class MainActivity extends Activity {
                 String estart = df.format(ce.getBegin().getTime());
                 String eend = df.format(ce.getEnd().getTime());
                 cal1.setText(ce.getTitle() + " " + estart + " to " + eend);
+                Log.i("CAL x", cal1.getText().toString());
+
 
                 int i = 1;
                 cal6.setVisibility(View.INVISIBLE);
@@ -406,14 +416,8 @@ public class MainActivity extends Activity {
                 //System.out.println(eventMap.keySet().size() + " " + eventMap.values());
                 if(LOG) Log.i("CAL",eventMap.keySet().size() + " " + eventMap.values());
 
-            } else {
-                cal1.setText("");
-                cal2.setText("");
-                cal3.setText("");
-                cal4.setText("");
-                cal5.setText("");
-                cal6.setText("");
             }
+            
             eventCursor.close();
         }
         cursor.close();

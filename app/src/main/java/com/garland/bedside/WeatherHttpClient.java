@@ -17,6 +17,7 @@ public class WeatherHttpClient {
 
     private static String BASE_URL = "http://api.openweathermap.org/data/2.5/weather?q=";
     private static String IMG_URL = "http://openweathermap.org/img/w/";
+    private static String API_ID = "&APPID=320e671be5d468652b00170f99d4abc3";
 
 
     public String getWeatherData(String location) {
@@ -24,7 +25,7 @@ public class WeatherHttpClient {
         InputStream is = null;
 
         try {
-            con = (HttpURLConnection) ( new URL(BASE_URL + location + "&units=imperial")).openConnection();
+            con = (HttpURLConnection) ( new URL(BASE_URL + location + "&units=imperial" + API_ID)).openConnection();
             Log.i("HTTP", BASE_URL + location + "&units=imperial");
             con.setRequestMethod("GET");
             con.setDoInput(true);
